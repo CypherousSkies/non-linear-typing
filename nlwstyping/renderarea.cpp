@@ -78,7 +78,7 @@ float dotCartPolar(std::tuple<float,float> cart, std::tuple<float,float> polar)
  *   b. have keys for each shape, build splines, etc.
  *   c. have key for binding points
  *   d. press enter to finalize the glyph
- *   e. press ctrl+enger to saves it in dictionary ordered by sizes of shapes, e.g. for UNLWS.communicate, it'd be triangle, then line
+ *   e. press ctrl+enter to saves it in dictionary ordered by sizes of shapes, e.g. for UNLWS.communicate, it'd be triangle, then line
  */
 /*
  * Ravoz Edit Mode:
