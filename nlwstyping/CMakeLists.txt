@@ -18,7 +18,6 @@ set(PROJECT_SOURCES
         main.cpp
         renderarea.cpp
         renderarea.h
-        quickrenderarea.qml
         mainwindow.ui
         graph.h
         graph.cpp
