@@ -26,6 +26,7 @@ public slots:
     void setPen(const QPen &pen);
     void setBrush(const QBrush &brush);
     void setAntialiased(bool antialiased);
+    void update();
 protected:
     void paintEvent(QPaintEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
