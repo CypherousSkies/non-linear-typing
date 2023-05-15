@@ -1,19 +1,72 @@
 # This Python file uses the following encoding: utf-8
 
+import numpy as np
+
 class Glyph():
-    def __init__(self,gloss,img,outgoing=0):
+    def __init__(self,gloss,img,outgoing=None):
         """
         Glyph(gloss,img,outgoing) creates a glyph with name `gloss`, display
-        `img`, and a dict of outgoing connections, `outgoing` (which has the
+        `img` (of either the form QPainter->None or DisplayGraph), and a dict of outgoing connections, `outgoing` (which has the
         form: outgoing[node] = np.array(x,y,dx,dy))
         """
         self.gloss = gloss
         self.img = img
         self.outgoing = outgoing
-    def getAnchor(self,num):
+    def get_binding_point(self,node):
+        return self.outgoing[node]
+    def get_nth_Anchor(self,num):
         """
-        getOutgoing(node) gets the `num`th outgoing spline anchor
+        getAnchor(node) gets the `num`th outgoing spline anchor
         (a 4-vector relative to the glyph). Each glyph will respond to this
         differently, but should be able to produce at least one anchor.
         """
         raise NotImplementedError("Glyph doesn't have an anchor!")
+    def addAnchor(self,node):
+        """
+        addAnchor(self
+        """
+        self.outgoing[node] = get_nth_Anchor(len(self.outgoing.keys()))
+    def pruneAnchor(self,node):
+        """
+        undo addAnchor(node)
+        """
+        self.outgoing.pop(node)
+
+def ignore(x):
+    return
+
+class BindingPoint(Glyph):
+    def __init__(self,outgoing=None):
+        super().__init__(None,ignore,outgoing)
+    def get_nth_Anchor(self,num):
+        """
+        connect outputs (e.g. ᴬᵦ > C)
+        """
+        theta = 0 #pick some nice function to lay out angles
+        dx = np.cos(theta)
+        dy = np.sin(theta)
+        return np.array(0,0,dx,dy)
+
+class StackedBindingPoint(Glyph):
+    def __init__(self,outgoing=None):
+        super().__init__(None,ignore,outgoing)
+    def get_nth_Anchor(self,num):
+        """
+        stack outputs (e.g. ᴬᵦ = C)
+        """
+        r = 1
+        theta = 0 #pick some nice function
+        return np.array(r*np.cos(theta),r*np.sin(theta),np.cos(theta),np.sin(theta))
+
+class EvenlySpacedAlong(Glyph):
+    def __init__(self,gloss,img,outgoing=None,curve):
+        """
+        curve(l) = (x,y,dx,dy) parameterized by length, l
+        """
+        super().__init__(gloss,img,outgoing=None)
+        self.curve = curve
+    def addAnchor(node):
+        """
+        evenly space the n binding points along the positive direction of the curve
+        """
+        raise NotImplementedError("NYI")

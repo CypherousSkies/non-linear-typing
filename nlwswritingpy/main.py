@@ -52,7 +52,7 @@ class Mode(Enum):
     Dictionary_Edit = auto()
 
 class Editor(QMainWindow):
-    saved = False
+    saved = True
     mode = Mode.Traverse
     file = None
     def __init__(self):
@@ -105,7 +105,7 @@ class Editor(QMainWindow):
             print(data.name)
             modes[data.name] = data.name
             modeActs[data.name] = QAction(data.name,self)
-            def fn(x=None, dataname=data.name): # Eldrich QT things DO NOT CHANGE
+            def fn(checked=None, dataname=data.name): # Eldrich QT things DO NOT CHANGE
                 self.setMode(dataname) # you see, it sets the first arg to False, but if that arg has no default value, it says its missing an argument. so uh don't fuck with this
             modeActs[data.name].triggered.connect(fn)
             modeMenu.addAction(modeActs[data.name])
