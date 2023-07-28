@@ -4,7 +4,7 @@
 class Graph():
     graph = None
     data = None
-    def __init__(self,graph=None,data=None,update=None):
+    def __init__(self,graph={},data={},update=None):
         """
         Graph(graph=None,data=None,update=None) creates a new Graph object with optional
         node-connection dictionary, graph, node-value dictionary, data, and update function, update.
@@ -26,12 +26,20 @@ class Graph():
         add(node,data,*predecessors) adds a node to the graph with
         id `node` and data `data` connected to other nodes *predecessors
         """
+        if node is None:
+            node = str(len(self.graph)+1)
         for edge in predecessors:
-            self.connect(nodeA,nodeB)
+            self.connect(node,edge)
         self.graph[node] = predecessors
         self.data[node] = data
-        if update is not None:
+        if self.update is not None:
             self.update()
+    def addAuto(self,data,*predecessors):
+        """
+        addAuto(self,data,*predecessors) adds a node with automatically assigned id,
+        and specified data `data` and connections to *predecessors
+        """
+        raise NotImplementedError("No automatic ID algorithm defined!")
     def connect(self,nodeA,nodeB):
         self.graph[nodeA] += nodeB
         self.graph[nodeB] += nodeA
@@ -41,7 +49,7 @@ class Graph():
         """
         self.graph.pop(node)
         self.data.pop(node)
-        if update is not None:
+        if self.update is not None:
             self.update()
     def prune(self):
         """
@@ -52,7 +60,7 @@ class Graph():
             for edge in self.getConnections(node):
                 if edge not in self.keys():
                     self.graph[node].pop(edge)
-        if update is not None:
+        if self.update is not None:
             self.update()
     def getConnections(self,node):
         """
@@ -102,16 +110,28 @@ class DisplayGraph(Graph):
         """
         DisplayGraph(graph=None,data=None) creates a graph with the connections
         of `graph` and the display/location/spline data `data`
-        for each node, data[node] should be formatted like (disp,pos,connection_data)
+        for each node, data[node] should be formatted like (disp,pos)
         where
           `disp` is a Glyph
           `pos` = np.array(x,y) is the position of the node
-          `connection_data` is a dictionary with keys graph[node] and values
-            of 4-vectors np.array(x,y,dx,dy) which form a one-sided spline anchor
-            where (x,y) is relative to the glyph <-- not neccessary because encoded in Glyph?
         """
         super().__init__(graph,data,update)
         for k in graph.keys():
-            (_,_,_,dict) = data[k]
+            dict = data[k][0].outgoing
             if graph[k] != dict.keys:
                 raise ValueError("Data keys don't match connections!")
+    def getConnections(self,node):
+        return self.data[node][0].outgoing
+    def addAuto(self,data,*p):
+        return self.add(self,len(self.data),data,*p)
+    def add(self,node,data,*predecessors):
+        if predecessors is None:
+            self.data[node] = data
+            self.graph[node] = data[0].outgoing
+        elif len(predecessors) == 1:
+            pred = predecessors[0]
+            bp = pred.addAnchor(node)
+            if bp is not None:
+                self.addAuto((bp,data[1]),)# ???????? I think i need to get a predecessor here?
+
+

@@ -4,8 +4,9 @@ import numpy as np
 from enum import Enum,auto
 from PySide6.QtWidgets import (QApplication,QMainWindow,QMenu,QWidget,QToolTip,QMessageBox,QPushButton)
 from PySide6.QtGui import (QFont,QIcon,QAction,QKeyEvent)
-from graph import *
-from glyph import *
+from graph import DisplayGraph
+import glyph
+from graphrender import GraphRenderArea
 
 #https://wiki.python.org/moin/PythonGraphLibraries
 #https://graphviz.readthedocs.io/en/stable/
@@ -50,13 +51,34 @@ class Mode(Enum):
     2. if legal, add new edges as with ravoz mode
     """
     Dictionary_Edit = auto()
+    """
+    Shapes Input Mode
+    As detailed in Sky
+    """
+    Shapes = auto()
 
 class Editor(QMainWindow):
     saved = True
-    mode = Mode.Traverse
+    mode = Mode.Shapes
     file = None
+    renderarea = None
+    keys = {
+        Mode.Traverse:{},
+        Mode.Node_Adjust:{},
+        Mode.Ravoz:{},
+        Mode.Dictionary_Edit:{},
+        Mode.Shapes:{
+            'j': (lambda length,angle,graph,selected: glyph.CCW90(length,bp)),
+            'u': (lambda length,angle,graph,selected: glyph.CCWAngle(length,angle,bp)),
+            'i': (lambda length,angle,graph,selected: glyph.Straight(length,bp)),
+            'o': (lambda length,angle,graph,selected: glyph.CWAngle(length,angle,bp)),
+            'p': (lambda length,angle,graph,selected: glyph.CW90(length,bp)),
+        }
+    }
     def __init__(self):
         super().__init__()
+        self.pen_length = 10
+        self.pen_angle = np.pi/6
         self.initUI()
         self.show()
     def closeEvent(self,event):
@@ -94,6 +116,9 @@ class Editor(QMainWindow):
         saveAct.triggered.connect(self.save)
         fileMenu.addAction(saveAct)
 
+        keyBinds = QAction('Load Key Bindings',self)
+        fileMenu.addaction(keyBinds)
+
         undoAct = QAction('Undo',self)
         redoAct = QAction('Redo',self)
         editMenu.addAction(undoAct)
@@ -115,11 +140,20 @@ class Editor(QMainWindow):
         self.initMenus()
         QToolTip.setFont(QFont('Serif',10))
         self.setWindowTitle('NLWS Editor')
+        if self.file is not None:
+            graph = self.load(self.file)
+        else:
+            self.selected_node = 0
+            bp = glyph.BindingPoint()
+            graph = DisplayGraph(graph={0:bp},data={0:(bp,np.array([0,0]),{})})
+        self.renderarea = GraphRenderArea(self,graph)
         self.statusBar().showMessage('Ready')
     def setMode(self,mode):
         self.mode = Mode[mode]
         self.statusBar().showMessage(mode)
         print("set mode "+mode)
+    def load(self,filepath):
+        raise NotImplementedError()
     def autosave(self):
         self.save(self.file)
     def save(self,file):
@@ -127,6 +161,7 @@ class Editor(QMainWindow):
         #raise NotImplementedError()
     def keyPressEvent(self,e: QKeyEvent) -> None:
         # make a dictionary of lambdas which map inputs to adding things to the extant graph
+        self.keys[self.mode][e.text()](self.pen_length,self.pen_angle,self.renderarea.graph,self.selected_node)
         raise NotImplementedError()
 if __name__ == "__main__":
     app = QApplication(sys.argv)
